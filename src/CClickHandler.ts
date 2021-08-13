@@ -12,7 +12,7 @@ export class CClickHandler {
     private m_areas: Area[] = [];
 
     constructor() {
-        document.addEventListener( "mousedown" , this.Handler );
+
     }
 
     public Register( item: Area ) {

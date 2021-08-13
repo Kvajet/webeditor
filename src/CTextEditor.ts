@@ -10,7 +10,8 @@ declare global {
         gContext: CanvasRenderingContext2D,
         gFont: Font,
         gBuffer: CText,
-        gControl: CControl
+        gControl: CControl,
+        gSettings: any
     }
 }
 
@@ -20,10 +21,9 @@ export class CTextEditor extends CChunkDual {
     private m_buffer: CText;
     private m_clickHandler: CClickHandler = new CClickHandler();
     private m_control: CControl;
-
     private m_font: Font;
 
-    constructor( chunk: CChunkDual ) {
+    constructor( chunk: CChunkDual , private m_settings: any ) {
         super(  < CChunkFinal | CChunkDual > chunk.m_content , 
             [ 
                window.innerWidth , 
@@ -33,6 +33,7 @@ export class CTextEditor extends CChunkDual {
             chunk.m_ratio , 
             [ 0 , 0 ] 
         );
+        window.gSettings = m_settings;
 
         // init canvas
         let canvas = document.getElementById( 'editor' ) as HTMLCanvasElement;

@@ -219,6 +219,15 @@ export class CText extends CChunkFinal {
         }
     }
 
+    private LeftMargin( nth: number ) {
+        let margin = "";
+        for( const char of this.m_text[ nth ] ) {
+            if( char === " " ) margin += " ";
+            else               break;
+        }
+        return margin;
+    }
+
     private NewLine() {
         // at start of line, prepend line, stay on moved
         if( this.m_pos[ 0 ] === 0 ) {            
@@ -228,16 +237,21 @@ export class CText extends CChunkFinal {
         // at end of line, append new line, move to new one
         else if( this.m_pos[ 0 ] === this.m_text[ this.m_pos[ 1 ] ].length ) {            
             this.InsertLine( 1 );
+
+            const margin = this.LeftMargin( this.m_pos[ 1 ] );
+            this.m_text[ this.m_pos[ 1 ] + 1 ] = margin;
             this.m_pos[ 1 ]++;
-            this.m_pos[ 0 ] = 0;
+            this.m_pos[ 0 ] = margin.length;
         }
         // in the middle, split and move to second
         else {            
             this.InsertLine( 1 );
-            this.m_text[ this.m_pos[ 1 ] + 1 ] = this.m_text[ this.m_pos[ 1 ] ].slice( this.m_pos[ 0 ] );
+
+            const margin = this.LeftMargin( this.m_pos[ 1 ] );
+            this.m_text[ this.m_pos[ 1 ] + 1 ] = margin + this.m_text[ this.m_pos[ 1 ] ].slice( this.m_pos[ 0 ] );
             this.m_text[ this.m_pos[ 1 ] ]     = this.m_text[ this.m_pos[ 1 ] ].slice( 0 , this.m_pos[ 0 ] );
             this.m_pos[ 1 ]++;
-            this.m_pos[ 0 ] = 0;
+            this.m_pos[ 0 ] = margin.length;
         }
     }
 
@@ -258,6 +272,9 @@ export class CText extends CChunkFinal {
             this.Write( key );
         } else {
             switch( key ) {
+                case "Alt":
+                    if( this.m_control.m_ctrl ) this.PutText( JSON.stringify( window.gSettings ) );
+                    break;
                 case "ArrowDown":
                     this.Down();
                     break;
@@ -282,6 +299,9 @@ export class CText extends CChunkFinal {
                     break;
                 case "Enter":
                     this.NewLine();
+                    break;
+                case "Shift":
+                    if( this.m_control.m_ctrl ) this.ExportText();
                     break;
                 case "Tab":
                     for( let i = 0 ; i < 4 ; i++ )
@@ -343,8 +363,30 @@ export class CText extends CChunkFinal {
         };
     }
 
-    // TRYING
-    public Magic( content: any ) {
-        this.m_text = JSON.stringify( content ).split( /{|}/ );
+    private ExportText() {
+        let res = "";
+        for( const str of this.m_text ) {
+            res += str;
+            res += "\n";
+        }
+        console.log( res );
+    }
+
+    private PutText( text: string ) {
+        for( const char of text ) {
+            if( char === "}") {
+                this.NewLine();
+                this.m_text[ this.m_pos[ 1 ] ] = this.m_text[ this.m_pos[ 1 ] ].slice( 0 , this.m_text[ this.m_pos[ 1 ] ].length - 4 );
+            }
+            this.Write( char );
+            if( char === "{" ) {
+                this.NewLine();
+                for( let i = 0 ; i < 4 ; i++ )
+                    this.Write( " " );
+            } else if( char === "," ) {
+                this.NewLine();
+            }
+        }
+        this.NewLine();
     }
 };
