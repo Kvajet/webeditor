@@ -15,6 +15,13 @@ declare global {
     }
 }
 
+interface File {
+    name: string;
+    content: string;
+}
+
+const files: File[] = [];
+
 // typescript is not able to import unused stuff therefore the eval() doesnt work
 // kill me now
 const dump = CLeftBar;
@@ -71,10 +78,8 @@ export class CTextEditor extends CChunkDual {
         // TODO, working now, should be better, edit: this is dogshit
         this.m_content = this.Construct( settings );
         this.m_content = this.m_content.m_content;
-        const match = settings[ "ratio" ].match( /([0-9]+):([0-9]+)/ );
-        this.m_ratio = [ Number( match[ 1 ] ) , Number( match[ 2 ] ) ];
         this.m_orientation = settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL
-        this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.m_ratio );
+        this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.GetRatio( settings[ "ratio" ] ) );
 
         this.m_buffer.Magic( settings );
     }
@@ -108,6 +113,17 @@ export class CTextEditor extends CChunkDual {
         this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.m_ratio );
     }
 
+    private GetRatio( ratioStr: string | undefined ): [ number , number ] {
+        if( ratioStr === undefined ) {
+            return [ 50 , 50 ];
+        }
+        const match = ratioStr.match( /([0-9]+):([0-9]+)/ );
+        if( match == null ) {
+            throw "Invalid ration attribute.";
+        }
+        return [ Number( match[ 1 ] ) , Number( match[ 2 ] ) ];
+    }
+
     private Construct( settings: any ): CChunkAbstract {
         if( settings[ "type" ] === "final" ) {
             let ret: CChunkFinal;
@@ -119,9 +135,6 @@ export class CTextEditor extends CChunkDual {
             ret.Options( settings[ "options" ] );
             return ret;
         } else {
-            const match = settings[ "ratio" ].match( /([0-9]+):([0-9]+)/ );
-            if( match == null ) 
-                throw Error( "Invalid ration attribute." );
             return new CChunkDual(
                 [ 
                     this.Construct( settings[ "first"  ] ) ,
@@ -129,15 +142,10 @@ export class CTextEditor extends CChunkDual {
                 ],
                 [ 0 , 0 ],
                 settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL ,
-                [ Number( match[ 1 ] ) , Number( match[ 2 ] ) ],
+                this.GetRatio( settings[ "ratio" ] ),
                 [ 0 , 0 ]
             )
         }
-    }
-
-    public Draw() {
-        ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 0 ].Draw();
-        ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 1 ].Draw();
     }
 
     private Loop = ( time: number ) => {

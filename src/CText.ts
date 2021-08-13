@@ -91,6 +91,17 @@ export class CText extends CChunkFinal {
         }
     }
 
+    private DeleteWord() {
+        if( this.m_pos[ 0 ] === this.m_text[ this.m_pos[ 1 ] ].length ) {
+            this.Delete();
+        } else {
+            const [ begin , end ] = this.FindRightWord();
+            
+            this.m_text[ this.m_pos[ 1 ] ] =   this.m_text[ this.m_pos[ 1 ] ].slice( 0 , begin )
+                                             + this.m_text[ this.m_pos[ 1 ] ].slice( end + 1 );
+        }
+    }
+
     private FindLeftWord(): [ number , number ] {
         const end = this.m_pos[ 0 ] - 1;
         let begin = end - 1;
@@ -111,7 +122,6 @@ export class CText extends CChunkFinal {
             }
         }
         begin = Math.max( begin , 0 );
-        // console.log( `Begin: ${ begin } - ${ this.m_text[ this.m_pos[ 1 ] ][ begin ] }, End: ${ end } - ${ this.m_text[ this.m_pos[ 1 ] ][ end ] }, Word: "${ this.m_text[ this.m_pos[ 1 ] ].slice( begin , end + 1 ) }"` );
         return [ begin , end ];
     }
 
@@ -157,7 +167,6 @@ export class CText extends CChunkFinal {
         }
 
         end = Math.min( end , this.m_text[ this.m_pos[ 1 ] ].length - 1 );
-        // console.log( `Begin: ${ begin } - ${ this.m_text[ this.m_pos[ 1 ] ][ begin ] }, End: ${ end } - ${ this.m_text[ this.m_pos[ 1 ] ][ end ] }, Word: "${ this.m_text[ this.m_pos[ 1 ] ].slice( begin , end + 1 ) }"` );
         return [ begin , end ];
     }
 
@@ -274,7 +283,8 @@ export class CText extends CChunkFinal {
                     else              this.Erase();
                     break;
                 case "Delete":
-                    this.Delete();
+                    if( this.m_ctrl ) this.DeleteWord();
+                    else              this.Delete();
                     break;
                 case "Enter":
                     this.NewLine();
@@ -300,37 +310,25 @@ export class CText extends CChunkFinal {
         // draw text, temporary - START
         const curCol = this.m_context.fillStyle;
 
-        // this.m_context.fillStyle = "#1E1E1E";
         this.m_context.fillStyle =  this.m_background;
         this.m_context.fillRect( this.m_offset[ 0 ] , this.m_offset[ 1 ] , this.m_size[ 0 ] , this.m_size[ 1 ] );
 
-        // this.m_context.fillStyle = "#FFF";
         this.m_context.fillStyle = this.m_color;
 
         let off = this.m_font.size;
         for( const str of this.m_text ) {
-            this.m_context.fillText( 
-                str , 
-                this.m_offset[ 0 ] + 5 , 
-                this.m_offset[ 1 ] + off - 3
-            );
+            this.m_context.fillText( str , this.m_offset[ 0 ] + 5 , this.m_offset[ 1 ] + off - 3 );
             off += this.m_font.size;
         }
 
-        this,this.m_context.fillStyle = curCol;
+        this.m_context.fillStyle = curCol;
         // draw text, temporary - END
 
         this.m_cursor.Draw();
     }
 
     // TRYING
-    public Magic( settings: any ) {
-        this.m_text = [
-            "Hello world!",
-            "How are you ma man?",
-            "KEKW KEKLEO LULW LMAO"
-        ]
-        // this.m_text[ 0 ] = JSON.stringify( settings );
-        // console.log( JSON.stringify( settings ) );
+    public Magic( content: any ) {
+        this.m_text = JSON.stringify( content ).split( /{|}/ );
     }
 };

@@ -17,7 +17,6 @@ export class CTopBar extends CChunkFinal {
     public Draw() {
         const curCol = this.m_context.fillStyle;
         
-        // this.m_context.fillStyle = "#2D2D2D";
         this.m_context.fillStyle = this.m_background;
         this.m_context.fillRect( this.m_offset[ 0 ] , this.m_offset[ 1 ] , this.m_size[ 0 ] , this.m_size[ 1 ] );
 

@@ -33,11 +33,6 @@ const order: any = {
     }
 };
 
-// "second": {
-//     "type": "final",
-//     "name": "CText"
-// }
-
 /*
 # types
 "type": "dual"

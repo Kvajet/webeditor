@@ -105,27 +105,14 @@ export class CChunkDual extends CChunkAbstract {
         let sOffset: [ number, number ];
 
         if( this.m_orientation === EOrientation.HORIZONTAL ) {
-            first = [
-                this.m_size[ 0 ] ,
-                ( this.m_size[ 1 ] / sum ) * this.m_ratio[ 0 ] 
-            ];
-            second = [
-                this.m_size[ 0 ] ,
-                ( this.m_size[ 1 ] / sum ) * this.m_ratio[ 1 ]
-            ];
+            first   = [ this.m_size[ 0 ]   , ( this.m_size[ 1 ] / sum ) * this.m_ratio[ 0 ] ];
+            second  = [ this.m_size[ 0 ]   , ( this.m_size[ 1 ] / sum ) * this.m_ratio[ 1 ] ];
             sOffset = [ this.m_offset[ 0 ] , this.m_offset[ 1 ] + first[ 1 ] ];
         } else {
-            first = [
-                ( this.m_size[ 0 ] / sum ) *  this.m_ratio[ 0 ] ,
-                this.m_size[ 1 ]
-            ];
-            second = [
-                ( this.m_size[ 0 ] / sum ) *  this.m_ratio[ 1 ] ,
-                this.m_size[ 1 ]
-            ];
-            sOffset = [ this.m_offset[ 0 ] + first[ 0 ] , this.m_offset[ 1 ] ];
+            first =   [ ( this.m_size[ 0 ] / sum ) *  this.m_ratio[ 0 ] , this.m_size[ 1 ] ];
+            second =  [ ( this.m_size[ 0 ] / sum ) *  this.m_ratio[ 1 ] , this.m_size[ 1 ] ];
+            sOffset = [ this.m_offset[ 0 ] + first[ 0 ]                 , this.m_offset[ 1 ] ];
         }
-
         ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 0 ].Rescale( first , this.m_offset );
         ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 1 ].Rescale( second , sOffset );
     }

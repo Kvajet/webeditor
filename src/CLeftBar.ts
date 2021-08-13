@@ -17,15 +17,8 @@ export class CLeftBar extends CChunkFinal {
     public Draw() {
         const curCol = this.m_context.fillStyle;
 
-        // this.m_context.fillStyle = "#1E1E1E";
         this.m_context.fillStyle = this.m_background;
-
-        this.m_context.fillRect( 
-            this.m_offset[ 0 ] , 
-            this.m_offset[ 1 ] , 
-            this.m_size[ 0 ], 
-            this.m_size[ 1 ]
-        );
+        this.m_context.fillRect( this.m_offset[ 0 ] , this.m_offset[ 1 ] , this.m_size[ 0 ] , this.m_size[ 1 ] );
         
         for( let i = 1 ; i <= this.m_text.m_text.length ; i++ ) {
             this.m_context.fillStyle = this.m_color;
