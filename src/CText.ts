@@ -1,5 +1,6 @@
 import { Font , Cursor } from "./interface";
 import { CChunkFinal , Details } from "./CChunk";
+import { CControl } from "./CControl";
 
 export class CText extends CChunkFinal {
     public m_text: string[] = [ "" ];
@@ -9,13 +10,14 @@ export class CText extends CChunkFinal {
     private m_context: CanvasRenderingContext2D;
 
     private m_cursor: Cursor;
-    private m_ctrl: boolean = false;
+    private m_control: CControl;
 
     constructor( size: [ number , number ] , offset: [ number , number ] , details: Details | undefined = undefined ) {
         super( size , offset , details );
 
         this.m_font = window.gFont;
         this.m_context = window.gContext;
+        this.m_control = window.gControl;
 
         this.m_cursor = {
             width: 3,
@@ -96,7 +98,7 @@ export class CText extends CChunkFinal {
             this.Delete();
         } else {
             const [ begin , end ] = this.FindRightWord();
-            
+
             this.m_text[ this.m_pos[ 1 ] ] =   this.m_text[ this.m_pos[ 1 ] ].slice( 0 , begin )
                                              + this.m_text[ this.m_pos[ 1 ] ].slice( end + 1 );
         }
@@ -251,14 +253,6 @@ export class CText extends CChunkFinal {
         }
     }
 
-    public CtrlPress() {
-        this.m_ctrl = true;
-    }
-
-    public CtrlRelease() {
-        this.m_ctrl = false;
-    }
-
     public Process( key: string ) {
         if( key.length === 1 )  {
             this.Write( key );
@@ -268,23 +262,23 @@ export class CText extends CChunkFinal {
                     this.Down();
                     break;
                 case "ArrowLeft":
-                    if( this.m_ctrl ) this.LeftWord();
-                    else              this.Left();
+                    if( this.m_control.m_ctrl ) this.LeftWord();
+                    else                        this.Left();
                     break;
                 case "ArrowRight":
-                    if( this.m_ctrl ) this.RightWord();
-                    else              this.Right();
+                    if( this.m_control.m_ctrl ) this.RightWord();
+                    else                        this.Right();
                     break;
                 case "ArrowUp":
                     this.Up();
                     break;
                 case "Backspace":
-                    if( this.m_ctrl ) this.EraseWord();
-                    else              this.Erase();
+                    if( this.m_control.m_ctrl ) this.EraseWord();
+                    else                        this.Erase();
                     break;
                 case "Delete":
-                    if( this.m_ctrl ) this.DeleteWord();
-                    else              this.Delete();
+                    if( this.m_control.m_ctrl ) this.DeleteWord();
+                    else                        this.Delete();
                     break;
                 case "Enter":
                     this.NewLine();

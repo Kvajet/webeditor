@@ -4,6 +4,7 @@ import { CChunkAbstract , CChunkDual , CChunkEmpty , CChunkFinal, EOrientation ,
 import { CLeftBar } from './CLeftBar';
 import { CTopBar } from './CTopBar';
 import { CClickHandler } from './CClickHandler';
+import { CControl } from './CControl';
 import settings from './settings'
 
 declare global {
@@ -11,16 +12,10 @@ declare global {
         gCanvas: HTMLCanvasElement,
         gContext: CanvasRenderingContext2D,
         gFont: Font,
-        gBuffer: CText
+        gBuffer: CText,
+        gControl:  CControl
     }
 }
-
-interface File {
-    name: string;
-    content: string;
-}
-
-const files: File[] = [];
 
 // typescript is not able to import unused stuff therefore the eval() doesnt work
 // kill me now
@@ -31,6 +26,7 @@ export class CTextEditor extends CChunkDual {
     private m_context: CanvasRenderingContext2D;
     private m_buffer: CText;
     private m_clickHandler: CClickHandler = new CClickHandler();
+    private m_control: CControl;
 
     private m_font: Font;
 
@@ -55,8 +51,10 @@ export class CTextEditor extends CChunkDual {
             color: "#000"        
         };
 
+        window.gControl = new CControl();
         window.gBuffer = new CText( [ 0 , 0 ] , [ 0 , 0 ] );
 
+        // has to be here, must call super
         super([
                 new CTopBar( [ 0 , 0 ] , [ 0 , 0 ] ) ,
                 window.gBuffer
@@ -70,6 +68,7 @@ export class CTextEditor extends CChunkDual {
         this.m_canvas = canvas;
         this.m_context = context;
         this.m_font = window.gFont;
+        this.m_control = window.gControl;
         this.m_buffer = window.gBuffer;
 
         this.SetCanvas();
@@ -79,27 +78,13 @@ export class CTextEditor extends CChunkDual {
         this.m_content = this.Construct( settings );
         this.m_content = this.m_content.m_content;
         this.m_orientation = settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL
-        this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.GetRatio( settings[ "ratio" ] ) );
-
-        this.m_buffer.Magic( settings );
+        this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , CChunkAbstract.GetRatio( settings[ "ratio" ] ) );
     }
 
     private SetCanvas() {
         this.ResizeCanvas();
         window.addEventListener( 'resize' , this.ResizeCanvas.bind( this ) );
-        document.addEventListener( 'keydown' , ev => {
-            if( ev.key === "Control" ) {
-                this.m_buffer.CtrlPress();
-            }
-            if( ev.key === "Tab" )
-                ev.preventDefault();
-            this.m_buffer.Process( ev.key );
-        });
-        document.addEventListener( 'keyup' , ev => {
-            if( ev.key === "Control" ) {
-                this.m_buffer.CtrlRelease();
-            }
-        });
+        this.m_control.AddKeyDown( this.m_buffer.Process.bind( this.m_buffer ) );
     }
 
     private SetFont() {
@@ -110,18 +95,8 @@ export class CTextEditor extends CChunkDual {
     private ResizeCanvas() {
         this.m_canvas.width = window.innerWidth;
         this.m_canvas.height = window.innerHeight;
+        this.SetFont();
         this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.m_ratio );
-    }
-
-    private GetRatio( ratioStr: string | undefined ): [ number , number ] {
-        if( ratioStr === undefined ) {
-            return [ 50 , 50 ];
-        }
-        const match = ratioStr.match( /([0-9]+):([0-9]+)/ );
-        if( match == null ) {
-            throw "Invalid ration attribute.";
-        }
-        return [ Number( match[ 1 ] ) , Number( match[ 2 ] ) ];
     }
 
     private Construct( settings: any ): CChunkAbstract {
@@ -142,7 +117,7 @@ export class CTextEditor extends CChunkDual {
                 ],
                 [ 0 , 0 ],
                 settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL ,
-                this.GetRatio( settings[ "ratio" ] ),
+                CChunkAbstract.GetRatio( settings[ "ratio" ] ),
                 [ 0 , 0 ]
             )
         }
