@@ -1,9 +1,6 @@
-
-
 export class CControl {
-
     public m_ctrl: boolean = false;
-    
+
     private m_keyDownFunc: any;
 
     constructor() {
@@ -30,9 +27,10 @@ export class CControl {
         }
     }
 
-    private KeyUp( ev:KeyboardEvent ) {
-        if( ev.key === "Control" ) {
-            this.m_ctrl = false;
+    private KeyUp( ev: KeyboardEvent ) {
+        switch( ev.key ) {
+            case "Control": this.m_ctrl = false; break;
+            default:                             break;
         }
     }
 }

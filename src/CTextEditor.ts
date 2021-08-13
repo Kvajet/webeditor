@@ -1,11 +1,8 @@
 import { CText } from './CText';
 import { Font } from './interface';
-import { CChunkAbstract , CChunkDual , CChunkEmpty , CChunkFinal, EOrientation , Details } from './CChunk';
-import { CLeftBar } from './CLeftBar';
-import { CTopBar } from './CTopBar';
+import { CChunkAbstract , CChunkDual , CChunkFinal, EOrientation } from './CChunk';
 import { CClickHandler } from './CClickHandler';
 import { CControl } from './CControl';
-import settings from './settings'
 
 declare global {
     interface Window {
@@ -13,13 +10,9 @@ declare global {
         gContext: CanvasRenderingContext2D,
         gFont: Font,
         gBuffer: CText,
-        gControl:  CControl
+        gControl: CControl
     }
 }
-
-// typescript is not able to import unused stuff therefore the eval() doesnt work
-// kill me now
-const dump = CLeftBar;
 
 export class CTextEditor extends CChunkDual {
     private m_canvas: HTMLCanvasElement;
@@ -30,7 +23,17 @@ export class CTextEditor extends CChunkDual {
 
     private m_font: Font;
 
-    constructor() {
+    constructor( chunk: CChunkDual ) {
+        super(  < CChunkFinal | CChunkDual > chunk.m_content , 
+            [ 
+               window.innerWidth , 
+               window.innerHeight 
+            ] , 
+            chunk.m_orientation , 
+            chunk.m_ratio , 
+            [ 0 , 0 ] 
+        );
+
         // init canvas
         let canvas = document.getElementById( 'editor' ) as HTMLCanvasElement;
         if( canvas == null )
@@ -52,18 +55,6 @@ export class CTextEditor extends CChunkDual {
         };
 
         window.gControl = new CControl();
-        window.gBuffer = new CText( [ 0 , 0 ] , [ 0 , 0 ] );
-
-        // has to be here, must call super
-        super([
-                new CTopBar( [ 0 , 0 ] , [ 0 , 0 ] ) ,
-                window.gBuffer
-            ] , 
-            [ window.innerWidth , window.innerHeight ] , 
-            EOrientation.HORIZONTAL , 
-            [ 20 , 80 ] ,
-            [ 0 , 0 ]
-        );
 
         this.m_canvas = canvas;
         this.m_context = context;
@@ -73,12 +64,7 @@ export class CTextEditor extends CChunkDual {
 
         this.SetCanvas();
         this.SetFont();
-
-        // TODO, working now, should be better, edit: this is dogshit
-        this.m_content = this.Construct( settings );
-        this.m_content = this.m_content.m_content;
-        this.m_orientation = settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL
-        this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , CChunkAbstract.GetRatio( settings[ "ratio" ] ) );
+        this.Init();
     }
 
     private SetCanvas() {
@@ -99,21 +85,23 @@ export class CTextEditor extends CChunkDual {
         this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.m_ratio );
     }
 
-    private Construct( settings: any ): CChunkAbstract {
+    static async Construct( settings: any ): Promise< any > {
         if( settings[ "type" ] === "final" ) {
-            let ret: CChunkFinal;
-            if( settings[ "name" ] === "CText" )
-                ret = window.gBuffer;
-            else
-                ret = eval( `new ${ settings[ "name" ] }([50,50],[0, 0])` );
-            
-            ret.Options( settings[ "options" ] );
-            return ret;
+            return import( `./${ settings[ "name" ] }.ts` )
+            .then( data => {
+                const item = new data[ settings[ "name" ] ]( [ 50 , 50 ] , [ 0 , 0 ] );
+                item.Options( settings[ "options" ] );
+
+                if( settings[ "name" ] === "CText" )
+                    window.gBuffer = item;
+
+                return item;
+            });
         } else {
             return new CChunkDual(
                 [ 
-                    this.Construct( settings[ "first"  ] ) ,
-                    this.Construct( settings[ "second" ] )
+                    await this.Construct( settings[ "first"  ] ) ,
+                    await this.Construct( settings[ "second" ] )
                 ],
                 [ 0 , 0 ],
                 settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL ,

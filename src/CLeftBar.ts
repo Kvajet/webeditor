@@ -5,13 +5,14 @@ import { Font } from './interface'
 export class CLeftBar extends CChunkFinal {
     private m_font: Font;
     private m_context: CanvasRenderingContext2D;
-    private m_text: CText = window.gBuffer;
+    private m_text: CText;
 
     constructor( size: [ number , number ] , offset: [ number , number ] , details: Details | undefined = undefined ) {
         super( size , offset , details );
         
         this.m_font = window.gFont;
         this.m_context = window.gContext;
+        this.m_text = window.gBuffer;
     }
 
     public Draw() {
@@ -41,5 +42,11 @@ export class CLeftBar extends CChunkFinal {
         }
 
         this.m_context.fillStyle = curCol;
+    }
+
+    public Init() {
+        this.m_font = window.gFont;
+        this.m_context = window.gContext;
+        this.m_text = window.gBuffer;
     }
 }

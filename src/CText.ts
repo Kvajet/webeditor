@@ -321,6 +321,28 @@ export class CText extends CChunkFinal {
         this.m_cursor.Draw();
     }
 
+    public Init() {
+        this.m_font = window.gFont;
+        this.m_context = window.gContext;
+        this.m_control = window.gControl;
+
+        this.m_cursor = {
+            width: 3,
+            height: 24,
+            color: "#FFF",
+            Draw: () => {
+                let curCol = this.m_context.fillStyle;
+                this.m_context.fillStyle = this.m_cursor.color;
+                this.m_context.fillRect( 
+                    this.m_offset[ 0 ] + this.m_pos[ 0 ] * this.m_font.calcWidth + 5 , 
+                    this.m_offset[ 1 ] + this.m_pos[ 1 ] * this.m_cursor.height , 
+                    this.m_cursor.width , 
+                    this.m_cursor.height );
+                this.m_context.fillStyle = curCol;
+            }
+        };
+    }
+
     // TRYING
     public Magic( content: any ) {
         this.m_text = JSON.stringify( content ).split( /{|}/ );

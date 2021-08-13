@@ -29,15 +29,26 @@ export class CChunkAbstract {
     }
 
     public SwitchOrientation() {
-        // NONE
     }
 
     public Draw() {
-
     }
 
     public Options( options: any ) {
+    }
 
+    public Init() {
+    }
+
+    static GetRatio( ratioStr: string | undefined ): [ number , number ] {
+        if( ratioStr === undefined ) {
+            return [ 50 , 50 ];
+        }
+        const match = ratioStr.match( /([0-9]+):([0-9]+)/ );
+        if( match == null ) {
+            throw "Invalid ration attribute.";
+        }
+        return [ Number( match[ 1 ] ) , Number( match[ 2 ] ) ];
     }
 };
 
@@ -121,11 +132,15 @@ export class CChunkDual extends CChunkAbstract {
         ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 0 ].Draw();
         ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 1 ].Draw();
     }
+
+    public Init() {
+        ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 0 ].Init();
+        ( this.m_content as [ CChunkAbstract , CChunkAbstract ] )[ 1 ].Init();
+    }
 }
 
 // this class is not recommended to use, using it is probably result of bad design,
 // but I know myself, bad design is my best skill
 export class CChunkEmpty extends CChunkAbstract {
-
     // Rescale is derived from CChunkAbstract, doing nothing
 }

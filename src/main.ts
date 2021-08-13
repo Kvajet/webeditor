@@ -1,11 +1,10 @@
-import { CTextEditor } from './CTextEditor'
+import { CTextEditor } from './CTextEditor';
+import settings from './settings';
 
-// try {
-//     const editor = new CTextEditor();
-//     editor.Process();
-// } catch( e ) {
-//     console.log( `[ERROR] ${ ( <Error>e ).message }` );
-// }
-
-const editor = new CTextEditor();
-editor.Process();
+try {
+    const res = await CTextEditor.Construct( settings );
+    const editor = new CTextEditor( res );
+    editor.Process();
+} catch( err ) {
+    console.log( "[ERROR] " + err );
+}
