@@ -12,7 +12,8 @@ declare global {
             control: CControl,
             renderer: CRenderer,
             font: Font,
-            settings: any
+            settings: any,
+            click: CClickHandler
         }
         gBuffer: CText
     }
@@ -24,7 +25,7 @@ window.coreComponents = {};
 
 export class CTextEditor extends CChunkDual {
     private m_buffer: CText;
-    private m_clickHandler: CClickHandler = new CClickHandler();
+    private m_clickHandler: CClickHandler;
     private m_control: CControl;
     private m_font: Font;
     private m_renderer: CRenderer;
@@ -52,11 +53,13 @@ export class CTextEditor extends CChunkDual {
 
         window.coreComponents.control = new CControl();
         window.coreComponents.renderer = new CRendererCanvas2D();
+        window.coreComponents.click = new CClickHandler();
 
         this.m_font = window.coreComponents.font;
         this.m_control = window.coreComponents.control;
         this.m_buffer = window.gBuffer;
         this.m_renderer = window.coreComponents.renderer;
+        this.m_clickHandler = window.coreComponents.click;
 
         this.SetCanvas();
         this.SetFont();

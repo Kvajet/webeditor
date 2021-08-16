@@ -36,6 +36,9 @@ export class CRenderer {
 
     public RenderRect( pos: Coords , size: Coords ) {
     }
+
+    public RenderCircle( radius: number , pos: Coords ) {
+    }
 };
 
 export class CRendererCanvas2D extends CRenderer {
@@ -109,5 +112,11 @@ export class CRendererCanvas2D extends CRenderer {
     // TODO
     public RenderRect( pos: Coords , size: Coords ) {
         this.m_context.fillRect( pos[ 0 ] , pos[ 1 ] , size[ 0 ] , size[ 1 ] );
+    }
+
+    public RenderCircle( radius: number , offset: Coords ) {
+        const circle = new Path2D();
+        circle.arc( radius + offset[ 0 ] , radius + offset[ 1 ] , radius , 0 , 2 * Math.PI );
+        this.m_context.fill( circle );
     }
 };
