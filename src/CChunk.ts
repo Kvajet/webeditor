@@ -50,6 +50,32 @@ export class CChunkAbstract {
         }
         return [ Number( match[ 1 ] ) , Number( match[ 2 ] ) ];
     }
+
+    static async Construct( settings: any ): Promise< any > {
+        if( settings[ "type" ] === "final" ) {
+            return import( `./${ settings[ "name" ] }.ts` )
+            .then( data => {
+                const item = new data[ settings[ "name" ] ]( [ 50 , 50 ] , [ 0 , 0 ] );
+                item.Options( settings[ "options" ] );
+
+                if( settings[ "name" ] === "CText" )
+                    window.gBuffer = item;
+
+                return item;
+            });
+        } else {
+            return new CChunkDual(
+                [ 
+                    await this.Construct( settings[ "first"  ] ) ,
+                    await this.Construct( settings[ "second" ] )
+                ],
+                [ 0 , 0 ],
+                settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL ,
+                CChunkAbstract.GetRatio( settings[ "ratio" ] ),
+                [ 0 , 0 ]
+            )
+        }
+    }
 };
 
 export class CChunkFinal extends CChunkAbstract {

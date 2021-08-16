@@ -1,27 +1,33 @@
 import { CText } from './CText';
 import { Font } from './interface';
-import { CChunkAbstract , CChunkDual , CChunkFinal, EOrientation } from './CChunk';
+import { CChunkDual , CChunkFinal, } from './CChunk';
 import { CClickHandler } from './CClickHandler';
 import { CControl } from './CControl';
+import { CRenderer, CRendererCanvas2D } from './CRenderer';
 
 declare global {
     interface Window {
-        gCanvas: HTMLCanvasElement,
-        gContext: CanvasRenderingContext2D,
-        gFont: Font,
-        gBuffer: CText,
-        gControl: CControl,
-        gSettings: any
+        // core components provided all the time
+        coreComponents: {
+            control: CControl,
+            renderer: CRenderer,
+            font: Font,
+            settings: any
+        }
+        gBuffer: CText
     }
 }
 
+// TODO FIX
+// @ts-expect-error
+window.coreComponents = {};
+
 export class CTextEditor extends CChunkDual {
-    private m_canvas: HTMLCanvasElement;
-    private m_context: CanvasRenderingContext2D;
     private m_buffer: CText;
     private m_clickHandler: CClickHandler = new CClickHandler();
     private m_control: CControl;
     private m_font: Font;
+    private m_renderer: CRenderer;
 
     constructor( chunk: CChunkDual , private m_settings: any ) {
         super(  < CChunkFinal | CChunkDual > chunk.m_content , 
@@ -33,35 +39,24 @@ export class CTextEditor extends CChunkDual {
             chunk.m_ratio , 
             [ 0 , 0 ] 
         );
-        window.gSettings = m_settings;
 
-        // init canvas
-        let canvas = document.getElementById( 'editor' ) as HTMLCanvasElement;
-        if( canvas == null )
-            throw Error( "Unable to find canvas." );
-        window.gCanvas = canvas;
-
-        // init context
-        let context = canvas.getContext( '2d' );
-        if( context == null )
-            throw Error( "Unable to initialize context." );
-        window.gContext = context;
+        window.coreComponents.settings = m_settings;
 
         // init font
-        window.gFont = {
+        window.coreComponents.font = {
             size: 24,
             fontname: "Consolas",
             calcWidth: 0,
             color: "#000"        
         };
 
-        window.gControl = new CControl();
+        window.coreComponents.control = new CControl();
+        window.coreComponents.renderer = new CRendererCanvas2D();
 
-        this.m_canvas = canvas;
-        this.m_context = context;
-        this.m_font = window.gFont;
-        this.m_control = window.gControl;
+        this.m_font = window.coreComponents.font;
+        this.m_control = window.coreComponents.control;
         this.m_buffer = window.gBuffer;
+        this.m_renderer = window.coreComponents.renderer;
 
         this.SetCanvas();
         this.SetFont();
@@ -75,45 +70,17 @@ export class CTextEditor extends CChunkDual {
     }
 
     private SetFont() {
-        this.m_context.font = `${ this.m_font.size }px ${ this.m_font.fontname }`;
-        this.m_font.calcWidth = this.m_context.measureText( "A" ).width;
+        this.m_renderer.SetFont( this.m_font.fontname , this.m_font.size );
+        this.m_font.calcWidth = this.m_renderer.LetterWidth();
     }
 
     private ResizeCanvas() {
-        this.m_canvas.width = window.innerWidth;
-        this.m_canvas.height = window.innerHeight;
         this.SetFont();
-        this.Rescale( [ this.m_canvas.width , this.m_canvas.height ] , [ 0 , 0 ] , this.m_ratio );
-    }
-
-    static async Construct( settings: any ): Promise< any > {
-        if( settings[ "type" ] === "final" ) {
-            return import( `./${ settings[ "name" ] }.ts` )
-            .then( data => {
-                const item = new data[ settings[ "name" ] ]( [ 50 , 50 ] , [ 0 , 0 ] );
-                item.Options( settings[ "options" ] );
-
-                if( settings[ "name" ] === "CText" )
-                    window.gBuffer = item;
-
-                return item;
-            });
-        } else {
-            return new CChunkDual(
-                [ 
-                    await this.Construct( settings[ "first"  ] ) ,
-                    await this.Construct( settings[ "second" ] )
-                ],
-                [ 0 , 0 ],
-                settings[ "orientation" ] === "horizontal" ? EOrientation.HORIZONTAL : EOrientation.VERICAL ,
-                CChunkAbstract.GetRatio( settings[ "ratio" ] ),
-                [ 0 , 0 ]
-            )
-        }
+        this.Rescale( [ this.m_renderer.Width() , this.m_renderer.Height() ] , [ 0 , 0 ] , this.m_ratio );
     }
 
     private Loop = ( time: number ) => {
-        this.m_context.clearRect( 0 , 0 , this.m_canvas.width , this.m_canvas.height );
+        this.m_renderer.Clear();
 
         this.Draw();
 

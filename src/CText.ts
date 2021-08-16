@@ -1,37 +1,42 @@
 import { Font , Cursor } from "./interface";
 import { CChunkFinal , Details } from "./CChunk";
 import { CControl } from "./CControl";
+import { CRenderer } from "./CRenderer";
 
 export class CText extends CChunkFinal {
     public m_text: string[] = [ "" ];
     public m_pos: [ number , number ] = [ 0 , 0 ];
 
     private m_font: Font;
-    private m_context: CanvasRenderingContext2D;
 
     private m_cursor: Cursor;
     private m_control: CControl;
+    private m_renderer: CRenderer;
 
     constructor( size: [ number , number ] , offset: [ number , number ] , details: Details | undefined = undefined ) {
         super( size , offset , details );
 
-        this.m_font = window.gFont;
-        this.m_context = window.gContext;
-        this.m_control = window.gControl;
+        this.m_font = window.coreComponents.font;
+        this.m_control = window.coreComponents.control;
+        this.m_renderer = window.coreComponents.renderer;
 
         this.m_cursor = {
             width: 3,
             height: 24,
             color: "#FFF",
             Draw: () => {
-                let curCol = this.m_context.fillStyle;
-                this.m_context.fillStyle = this.m_cursor.color;
-                this.m_context.fillRect( 
-                    this.m_offset[ 0 ] + this.m_pos[ 0 ] * this.m_font.calcWidth + 5 , 
-                    this.m_offset[ 1 ] + this.m_pos[ 1 ] * this.m_cursor.height , 
-                    this.m_cursor.width , 
-                    this.m_cursor.height );
-                this.m_context.fillStyle = curCol;
+                const curCol = this.m_renderer.GetTextColor();
+
+                this.m_renderer.SetTextColor( this.m_background );
+
+                this.m_renderer.RenderRect( 
+                    [
+                        this.m_offset[ 0 ] + this.m_pos[ 0 ] * this.m_font.calcWidth + 5 , 
+                        this.m_offset[ 1 ] + this.m_pos[ 1 ] * this.m_cursor.height , 
+                    ],
+                    [ this.m_cursor.width , this.m_cursor.height ]
+                );
+                this.m_renderer.SetTextColor( curCol );
             }
         };
     }
@@ -273,7 +278,7 @@ export class CText extends CChunkFinal {
         } else {
             switch( key ) {
                 case "Alt":
-                    if( this.m_control.m_ctrl ) this.PutText( JSON.stringify( window.gSettings ) );
+                    if( this.m_control.m_ctrl ) this.PutText( JSON.stringify( window.coreComponents.settings ) );
                     break;
                 case "ArrowDown":
                     this.Down();
@@ -322,43 +327,47 @@ export class CText extends CChunkFinal {
 
     public Draw() {
         // draw text, temporary - START
-        const curCol = this.m_context.fillStyle;
+        const curCol = this.m_renderer.GetTextColor();
 
-        this.m_context.fillStyle =  this.m_background;
-        this.m_context.fillRect( this.m_offset[ 0 ] , this.m_offset[ 1 ] , this.m_size[ 0 ] , this.m_size[ 1 ] );
+        this.m_renderer.SetTextColor( this.m_background );
+        this.m_renderer.RenderRect( this.m_offset , this.m_size );
 
-        this.m_context.fillStyle = this.m_color;
+        this.m_renderer.SetTextColor( this.m_color );
 
         let off = this.m_font.size;
         for( const str of this.m_text ) {
-            this.m_context.fillText( str , this.m_offset[ 0 ] + 5 , this.m_offset[ 1 ] + off - 3 );
+            this.m_renderer.RenderText( str , [ this.m_offset[ 0 ] + 5 , this.m_offset[ 1 ] + off - 3 ] );
             off += this.m_font.size;
         }
 
-        this.m_context.fillStyle = curCol;
+        this.m_renderer.SetTextColor( curCol );
         // draw text, temporary - END
 
         this.m_cursor.Draw();
     }
 
     public Init() {
-        this.m_font = window.gFont;
-        this.m_context = window.gContext;
-        this.m_control = window.gControl;
+        this.m_font = window.coreComponents.font;
+        this.m_control = window.coreComponents.control;
+        this.m_renderer = window.coreComponents.renderer;
 
         this.m_cursor = {
             width: 3,
             height: 24,
             color: "#FFF",
             Draw: () => {
-                let curCol = this.m_context.fillStyle;
-                this.m_context.fillStyle = this.m_cursor.color;
-                this.m_context.fillRect( 
-                    this.m_offset[ 0 ] + this.m_pos[ 0 ] * this.m_font.calcWidth + 5 , 
-                    this.m_offset[ 1 ] + this.m_pos[ 1 ] * this.m_cursor.height , 
-                    this.m_cursor.width , 
-                    this.m_cursor.height );
-                this.m_context.fillStyle = curCol;
+                const curCol = this.m_renderer.GetTextColor();
+
+                this.m_renderer.SetTextColor( this.m_cursor.color );
+
+                this.m_renderer.RenderRect( 
+                    [
+                        this.m_offset[ 0 ] + this.m_pos[ 0 ] * this.m_font.calcWidth + 5 , 
+                        this.m_offset[ 1 ] + this.m_pos[ 1 ] * this.m_cursor.height , 
+                    ],
+                    [ this.m_cursor.width , this.m_cursor.height ]
+                );
+                this.m_renderer.SetTextColor( curCol );
             }
         };
     }

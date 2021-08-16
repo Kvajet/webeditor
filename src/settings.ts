@@ -1,4 +1,4 @@
-const order: any = {
+const settings: any = {
     "type": "dual",
     "orientation": "horizontal",
     "ratio": "3:120",
@@ -45,4 +45,4 @@ const order: any = {
         "name": ...
 */
 
-export default order;
+export default settings;

@@ -1,10 +1,11 @@
+import { CChunkAbstract } from './CChunk';
 import { CTextEditor } from './CTextEditor';
 import settings from './settings';
 
 try {
-    const res = await CTextEditor.Construct( settings );
+    const res = await CChunkAbstract.Construct( settings );
     const editor = new CTextEditor( res , settings );
     editor.Process();
-} catch( err ) {
-    console.log( "[ERROR] " + err );
+} catch( err: any ) {
+    console.log( err );
 }
