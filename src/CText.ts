@@ -3,10 +3,18 @@ import { CChunkFinal , Details } from "./CChunk";
 import { CControl } from "./CControl";
 import { CRenderer } from "./CRenderer";
 
-export class CText extends CChunkFinal {
-    public m_text: string[] = [ "" ];
-    public m_pos: [ number , number ] = [ 0 , 0 ];
+interface File {
+    name: string;
+    content: string[];
+    pos: [ number , number ];
+};
 
+export class CText extends CChunkFinal {
+    public m_storage: File[] = [ { name: "new-file.txt", content: [ "" ], pos: [ 0 , 0 ] } ];
+    public m_storagePos: number = 0;
+
+    public m_text: string[] = this.m_storage[ this.m_storagePos ].content;
+    public m_pos: [ number , number ] = this.m_storage[ this.m_storagePos ].pos;
     private m_font: Font;
 
     private m_cursor: Cursor;
@@ -272,11 +280,37 @@ export class CText extends CChunkFinal {
         }
     }
 
+    private NextStorageItem() {
+        // this.m_storage[ this.m_storagePos ].pos = this.m_pos;
+        // this.m_storage[ this.m_storagePos ].content = this.m_text;
+
+        this.m_storagePos = ( this.m_storagePos + 1 ) % this.m_storage.length;
+        this.m_text = this.m_storage[ this.m_storagePos ].content;
+        this.m_pos = this.m_storage[ this.m_storagePos ].pos;
+    }
+
+    private NewStorageItem() {
+        // this.m_storage[ this.m_storagePos ].pos = this.m_pos;
+        // this.m_storage[ this.m_storagePos ].content = this.m_text;
+
+        this.m_storage.push({
+            name: `new-file-${ this.m_storage.length }.txt`,
+            content: [ "" ],
+            pos: [ 0 , 0 ]
+        });
+        this.m_storagePos = this.m_storage.length - 1;
+        this.m_text = this.m_storage[ this.m_storagePos ].content;
+        this.m_pos = this.m_storage[ this.m_storagePos ].pos;
+    }
+
     public Process( key: string ) {
-        if( key.length === 1 )  {
+        if( key.length === 1 && ! this.m_control.m_ctrl )  {
             this.Write( key );
         } else {
             switch( key ) {
+                case "a":
+                    this.NextStorageItem();
+                    break;
                 case "Alt":
                     if( this.m_control.m_ctrl ) this.PutText( JSON.stringify( window.coreComponents.settings ) );
                     break;
@@ -297,6 +331,9 @@ export class CText extends CChunkFinal {
                 case "Backspace":
                     if( this.m_control.m_ctrl ) this.EraseWord();
                     else                        this.Erase();
+                    break;
+                case "c":
+                    this.NewStorageItem();
                     break;
                 case "Delete":
                     if( this.m_control.m_ctrl ) this.DeleteWord();
@@ -344,12 +381,25 @@ export class CText extends CChunkFinal {
         // draw text, temporary - END
 
         this.m_cursor.Draw();
+
+        console.log( this.m_storage[ this.m_storagePos ].pos === this.m_pos );
     }
 
     public Init() {
         this.m_font = window.coreComponents.font;
         this.m_control = window.coreComponents.control;
         this.m_renderer = window.coreComponents.renderer;
+
+        const click = window.coreComponents.click;
+        click.Register({
+            x: this.m_offset[ 0 ],
+            y: this.m_offset[ 1 ],
+            width: this.m_size[ 0 ],
+            height: this.m_size[ 1 ],
+            Action: ( () => {
+                this.m_background = '#'+(Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0');
+            }).bind( this )
+        });
 
         this.m_cursor = {
             width: 3,
